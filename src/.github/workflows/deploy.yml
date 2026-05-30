@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-and-deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t app:latest .
+      
+      - name: Run tests
+        run: |
+          docker run --rm \
+            --network host \
+            -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@127.0.0.1:5432/kubsu \
+            app:latest \
+            pytest tests/ -v
+      
+      - name: Deploy
+        run: |
+          docker stop user-crud-app || true
+          docker rm user-crud-app || true
+          docker run -d --name user-crud-app -p 60080:60080 --restart always app:latest

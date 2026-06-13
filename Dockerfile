@@ -36,7 +36,7 @@ COPY tests/ ./tests/
 RUN chown -R app:app /app
 USER app
 
-EXPOSE 60080
+EXPOSE 8034
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:60080/health')" || exit 1

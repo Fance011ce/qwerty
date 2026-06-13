@@ -3,7 +3,7 @@
 # Переменные
 IMAGE_NAME = user-crud-app
 CONTAINER_NAME = user-crud-app
-PORT = 60080
+PORT = 8034
 
 # Сборка Docker образа (2-stage build)
 build:

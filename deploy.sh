@@ -49,7 +49,7 @@ docker rm user-crud-app || true
 echo "🚀 Starting new container..."
 docker run -d \
     --name user-crud-app \
-    -p 60080:60080 \
+    -p 8034:8034 \
     --restart unless-stopped \
     user-crud-app:latest
 
@@ -58,7 +58,7 @@ sleep 5
 
 # Проверяем health
 echo "🏥 Checking health..."
-if curl -f http://localhost:60080/health; then
+if curl -f http://localhost:8034/health; then
     echo "✅ Application is healthy!"
 else
     echo "❌ Health check failed!"
@@ -68,7 +68,7 @@ fi
 
 echo "========================================="
 echo "🎉 Deployment successful!"
-echo "🌐 App is running at: http://kubsu.tyvik.ru:60080"
+echo "🌐 App is running at: http://kubsu.tyvik.ru:8034"
 echo "========================================="
 
 # Показываем логи

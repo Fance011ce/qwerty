@@ -114,7 +114,7 @@ deploy:
           # Запускаем новый
           docker run -d \
             --name user-crud-app \
-            -p 60080:60080 \
+            -p 8034:8034 \
             --restart unless-stopped \
             $CI_REGISTRY_IMAGE:latest
         else
@@ -128,17 +128,17 @@ deploy:
           # Запускаем приложение
           nohup python3 -m uvicorn src.main:app \
             --host 0.0.0.0 \
-            --port 60080 \
+            --port 8034 \
             > app.log 2>&1 &
         fi
         
         # Проверка
         sleep 5
-        curl -f http://localhost:60080/health || echo "Health check failed"
+        curl -f http://localhost:8034/health || echo "Health check failed"
       EOF
   only:
     - master
     - main
   environment:
     name: production
-    url: http://$SERVER_HOST:60080
+    url: http://$SERVER_HOST:8034

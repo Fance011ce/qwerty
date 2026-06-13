@@ -26,4 +26,4 @@ jobs:
         run: |
           docker stop user-crud-app || true
           docker rm user-crud-app || true
-          docker run -d --name user-crud-app -p 60080:60080 --restart always app:latest
+          docker run -d --name user-crud-app -p 8034:8034 --restart always app:latest

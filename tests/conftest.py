@@ -1,40 +1,32 @@
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.database import AsyncSessionLocal, init_db as create_tables
+import pytest
+from httpx import AsyncClient
 from src.main import app
-from src.models import User
+from src.database import Base, get_db
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 
+# Тестовая БД в памяти
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-@pytest_asyncio.fixture(scope="session")
-async def init_db() -> None:
-    await create_tables()
+test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+TestingSessionLocal = sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
-
-@pytest_asyncio.fixture(scope='function')
-async def db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
+async def override_get_db():
+    async with TestingSessionLocal() as session:
         yield session
 
+@pytest.fixture(autouse=True)
+async def setup_db():
+    # Создаем таблицы
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Подменяем зависимость
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.clear()
 
-@pytest_asyncio.fixture(autouse=True)
-async def test_client():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+@pytest.fixture
+async def client():
+    async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def clear_table(init_db, db: AsyncSession) -> None:
-    await db.execute(text("TRUNCATE users;"))
-    await db.commit()
-
-
-@pytest_asyncio.fixture
-async def user(db: AsyncSession) -> User:
-    user = User(name="John Doe")
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user

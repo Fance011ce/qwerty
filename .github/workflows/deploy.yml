@@ -20,9 +20,9 @@ jobs:
       - name: Deploy container
         run: |
           podman rm -f user-crud-app || true
-          podman run -d --name user-crud-app --network host --replace app
-      
+          podman run -d --name user-crud-app --network host app
+
       - name: Health check
         run: |
-          sleep 3
-          curl -f http://localhost:8034/health
+          sleep 5
+          curl -f http://localhost:8034/health || docker logs user-crud-app

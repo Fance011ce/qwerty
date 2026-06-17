@@ -9,10 +9,20 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+      
       - name: Build image
         run: podman build -t app .
-      - name: Run container
+
+      - name: Run tests IN the built image
         run: |
-          podman stop user-crud-app || true
-          podman rm user-crud-app || true
-          podman run -d --name user-crud-app -p 60080:60080 --restart always app
+          podman run --rm --network host app pytest tests/ -v
+
+      - name: Deploy container
+        run: |
+          podman rm -f user-crud-app || true
+          podman run -d --name user-crud-app --network host --replace app
+      
+      - name: Health check
+        run: |
+          sleep 3
+          curl -f http://localhost:8034/health
